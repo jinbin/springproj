@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.FileOutputStream;
@@ -15,7 +16,7 @@ import java.util.Date;
 
 @RestController
 @SpringBootApplication
-public class DemoApplication {
+public class DemoApplication extends SpringBootServletInitializer {
 
 	private static final Logger logger = LoggerFactory.getLogger(DemoApplication.class);
 
@@ -23,16 +24,18 @@ public class DemoApplication {
 //	private static final String NAME="remote";
 //	private static final String PASSWORD="WDremote.123456";
 
-//	private static final String URL="jdbc:mysql://10.1.120.172:3306/member_club_test?useUnicode=true&characterEncoding=UTF-8";
-//	private static final String NAME="root";
-//	private static final String PASSWORD="wdbuyer.123456";
+	private static final String URL="jdbc:mysql://81.68.92.238:3306/bugly?useUnicode=true&characterEncoding=UTF-8";
+	private static final String URL_mitm="jdbc:mysql://81.68.92.238:3306/mitm?useUnicode=true&characterEncoding=UTF-8";
+
+	private static final String NAME="root";
+	private static final String PASSWORD="test";
 
 	@RequestMapping("/")
 	public String index() throws ClassNotFoundException, SQLException {
 //		Class.forName("com.mysql.cj.jdbc.Driver");
 //		Connection conn = DriverManager.getConnection(URL, NAME, PASSWORD);
 //		Statement stmt = conn.createStatement();
-//		ResultSet rs = stmt.executeQuery("select * from version;");//选择import java.sql.ResultSet;
+//		ResultSet rs = stmt.executeQuery("select * from bugly_data;");//选择import java.sql.ResultSet;
 //
 //		while(rs.next()){//如果对象中有数据，就会循环打印出来
 //			//System.out.println(rs.getString("user_name")+","+rs.getInt("age"));
@@ -42,25 +45,114 @@ public class DemoApplication {
 		return "Hello Spring Boot";
 	}
 
-	@RequestMapping(value="/bugly", method=RequestMethod.POST)
-	public void bugly(@RequestBody JSONObject jsonParam) throws IOException {
-		SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间
-		sdf.applyPattern("yyyy-MM-dd HH:mm:ss a");// a为am/pm的标记
-		Date date = new Date();// 获取当前时间
-		logger.info("进入bugly：" + sdf.format(date));
+	@RequestMapping(value="/mitm_list", method=RequestMethod.POST)
+	public void mitm_list(@RequestBody JSONObject jsonParam) throws SQLException, ClassNotFoundException {
+		logger.info("调用接口：/mitm_list");
 
 		// 直接将json信息打印出来
-		System.out.println(jsonParam.toJSONString());
+		logger.info("将JSON信息输出：");
+		logger.info(jsonParam.toJSONString());
+
+		String mark = jsonParam.getString("mark");
+
+		logger.info("mark: " + mark);
+
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection conn = DriverManager.getConnection(URL_mitm, NAME, PASSWORD);
+		Statement stmt = conn.createStatement();
+		String exe = "insert into mitm_list(`mark`) " +
+				"values(\'" + mark + "\');";
+		logger.info(exe);
+		int rs = stmt.executeUpdate(exe);//选择import java.sql.ResultSet;
+		logger.info("受影响的行数: " + rs);
+	}
+
+	@RequestMapping(value="/mitm", method=RequestMethod.POST)
+	public void create_mitm(@RequestBody JSONObject jsonParam) throws IOException, SQLException, ClassNotFoundException {
+		logger.info("调用接口：/mitm");
+
+		SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间
+		sdf.applyPattern("yyyy-MM-dd HH:mm:ss a");// a为am/pm的标记
+		String created_at = sdf.format(new Date());// 获取当前时间
+
+		// 直接将json信息打印出来
+		logger.info("将JSON信息输出：");
+		logger.info(jsonParam.toJSONString());
+
+		String mark = jsonParam.getString("mark");
+		String level = jsonParam.getString("level");
+		String info = jsonParam.getString("info");
+
+		logger.info("mark: " + mark);
+		logger.info("level: " + level);
+		logger.info("info: " + info);
+		logger.info("created_at: " + created_at);
+
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection conn = DriverManager.getConnection(URL_mitm, NAME, PASSWORD);
+		Statement stmt = conn.createStatement();
+		String exe = "insert into bugly_data(`mark`, `level`, `info`, `created_at`) " +
+				"values(\'" + mark + "\',\'" + level + "\',\'" + info+ "\',\'" + created_at+ "\');";
+		logger.info(exe);
+		int rs = stmt.executeUpdate(exe);//选择import java.sql.ResultSet;
+		logger.info("受影响的行数: " + rs);
+	}
+
+	@RequestMapping(value="/bugly", method=RequestMethod.POST)
+	public void bugly(@RequestBody JSONObject jsonParam) throws IOException, SQLException, ClassNotFoundException {
+		SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间
+		sdf.applyPattern("yyyy-MM-dd HH:mm:ss a");// a为am/pm的标记
+		String created_at = sdf.format(new Date());// 获取当前时间
+
+		// 直接将json信息打印出来
+		logger.info("将JSON信息输出：");
+		logger.info(jsonParam.toJSONString());
 
 		FileOutputStream fos = new FileOutputStream("./log.txt",true);
 		//true表示在文件末尾追加
-		fos.write(jsonParam.toJSONString().getBytes());
+		String content = sdf.format(new Date()) + " " + jsonParam.toJSONString() + "\n";
+		fos.write(content.getBytes());
 		fos.close();
+
+		String eventType = (String) jsonParam.get("eventType");
+		String timestamp = jsonParam.getString("timestamp");
+		JSONObject eventContent = jsonParam.getJSONObject("eventContent");
+		String date = eventContent.getString("date");
+		String appName = eventContent.getString("appName");
+		String appId = eventContent.getString("appId");
+		String appUrl = eventContent.getString("appUrl");
+		int platformId = eventContent.getInteger("platformId");
+		String datas = eventContent.getString("datas");
+
+		logger.info("eventType: " + eventType);
+		logger.info("timestamp: " + timestamp);
+		logger.info("date: " + date);
+		logger.info("appName: " + appName);
+		logger.info("appId: " + appId);
+		logger.info("appUrl: " + appUrl);
+		logger.info("platformId: " + platformId);
+		logger.info("datas: " + datas);
+		logger.info("created_at: " + created_at);
+
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection conn = DriverManager.getConnection(URL, NAME, PASSWORD);
+		Statement stmt = conn.createStatement();
+		String exe = "insert into bugly_data(`eventType`, `timestamp`, `date`, `appName`, `appId`, `appUrl`, `platformId`, `datas`, `created_at`) " +
+				"values(\'" + eventType + "\',\'" + timestamp + "\',\'" + date+ "\',\'" + appName+ "\',\'" + appId+ "\',\'" + appUrl+ "\',\'" + platformId + "\',\'" + datas+ "\',\'" + created_at + "\');";
+		logger.info(exe);
+		int rs = stmt.executeUpdate(exe);//选择import java.sql.ResultSet;
+		logger.info("受影响的行数: " + rs);
 	}
 
 	// /pac?ip=172.19.40.110:8082
 	@RequestMapping("/pac")
-	public String pac(@RequestParam(value = "ip", required=false) String ip){
+	public String pac(@RequestParam(value = "ip", required=false) String ip, @RequestParam(value = "effect", required=false) boolean effect){
+		if(effect == true){
+			return "function FindProxyForURL(url, host) {\n" +
+						"return \"DIRECT\";\n" +
+					"}";
+		}
+
 		if(ip == null){
 			ip = "172.19.40.110:8082";
 		}

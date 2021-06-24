@@ -3,7 +3,7 @@ server:
   port: 8888
 
 datasource:
-  url: jdbc:mysql://10.1.120.172:3306/member_club_test?useUnicode=true&characterEncoding=UTF-8
-  password: wdbuyer.123456
+  url: jdbc:mysql://81.68.92.238:3306/bugly?useUnicode=true&characterEncoding=UTF-8
+  password: test
   driver-class-name: com.mysql.jdbc.Driver
   username: root
