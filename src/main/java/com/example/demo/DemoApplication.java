@@ -45,9 +45,9 @@ public class DemoApplication extends SpringBootServletInitializer {
 		return "Hello Spring Boot";
 	}
 
-	@RequestMapping(value="/mitm_list", method=RequestMethod.POST)
+	@RequestMapping(value="/report/mitm_list/1.0", method=RequestMethod.POST)
 	public void mitm_list(@RequestBody JSONObject jsonParam) throws SQLException, ClassNotFoundException {
-		logger.info("调用接口：/mitm_list");
+		logger.info("调用接口：/report/mitm_list/1.0");
 
 		// 直接将json信息打印出来
 		logger.info("将JSON信息输出：");
@@ -67,9 +67,9 @@ public class DemoApplication extends SpringBootServletInitializer {
 		logger.info("受影响的行数: " + rs);
 	}
 
-	@RequestMapping(value="/mitm", method=RequestMethod.POST)
+	@RequestMapping(value="/report/mitm/1.0", method=RequestMethod.POST)
 	public void create_mitm(@RequestBody JSONObject jsonParam) throws IOException, SQLException, ClassNotFoundException {
-		logger.info("调用接口：/mitm");
+		logger.info("调用接口：/report/mitm/1.0");
 
 		SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间
 		sdf.applyPattern("yyyy-MM-dd HH:mm:ss a");// a为am/pm的标记
@@ -82,17 +82,19 @@ public class DemoApplication extends SpringBootServletInitializer {
 		String mark = jsonParam.getString("mark");
 		String level = jsonParam.getString("level");
 		String info = jsonParam.getString("info");
+		int result = jsonParam.getIntValue("result");
 
 		logger.info("mark: " + mark);
 		logger.info("level: " + level);
 		logger.info("info: " + info);
+		logger.info("result: " + result);
 		logger.info("created_at: " + created_at);
 
 		Class.forName("com.mysql.cj.jdbc.Driver");
 		Connection conn = DriverManager.getConnection(URL_mitm, NAME, PASSWORD);
 		Statement stmt = conn.createStatement();
-		String exe = "insert into bugly_data(`mark`, `level`, `info`, `created_at`) " +
-				"values(\'" + mark + "\',\'" + level + "\',\'" + info+ "\',\'" + created_at+ "\');";
+		String exe = "insert into mitm(`mark`, `level`, `info`, `created_at`, `result`) " +
+				"values(\'" + mark + "\',\'" + level + "\',\'" + info + "\',\'" + created_at+ "\',\'" + result+ "\');";
 		logger.info(exe);
 		int rs = stmt.executeUpdate(exe);//选择import java.sql.ResultSet;
 		logger.info("受影响的行数: " + rs);
