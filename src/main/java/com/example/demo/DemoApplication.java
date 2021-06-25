@@ -31,17 +31,7 @@ public class DemoApplication extends SpringBootServletInitializer {
 	private static final String PASSWORD="test";
 
 	@RequestMapping("/")
-	public String index() throws ClassNotFoundException, SQLException {
-//		Class.forName("com.mysql.cj.jdbc.Driver");
-//		Connection conn = DriverManager.getConnection(URL, NAME, PASSWORD);
-//		Statement stmt = conn.createStatement();
-//		ResultSet rs = stmt.executeQuery("select * from bugly_data;");//选择import java.sql.ResultSet;
-//
-//		while(rs.next()){//如果对象中有数据，就会循环打印出来
-//			//System.out.println(rs.getString("user_name")+","+rs.getInt("age"));
-//			System.out.println(rs);
-//		}
-
+	public String index() {
 		return "Hello Spring Boot";
 	}
 
@@ -82,7 +72,7 @@ public class DemoApplication extends SpringBootServletInitializer {
 		String mark = jsonParam.getString("mark");
 		String level = jsonParam.getString("level");
 		String info = jsonParam.getString("info");
-		int result = jsonParam.getIntValue("result");
+		String result = jsonParam.getString("result");
 
 		logger.info("mark: " + mark);
 		logger.info("level: " + level);
